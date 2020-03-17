@@ -19,3 +19,7 @@
 [原介绍网址](https://www.cnblogs.com/send-off-a-friend/p/12444280.html)
 
 [原下载网址](https://www.cnblogs.com/send-off-a-friend/p/12461040.html)
+
+目前最新版本：V1.2
+
+已上传的版本可以点Branch切换查看
