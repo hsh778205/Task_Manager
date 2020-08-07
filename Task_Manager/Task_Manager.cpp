@@ -154,11 +154,6 @@ int choose(int n, string str[4]) {
     char ans;
     while (true) {
         ans = getch();
-        if (ans == 'r' || ans == 'R') {
-            backxy();
-            main();
-            exit(0);
-        }
         if (ans > '0' && ans <= n + '0')
         {
             backxy();

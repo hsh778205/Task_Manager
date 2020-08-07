@@ -1,0 +1,2 @@
+D:\Github\Task_Manager\Task_Manager\Debug\Task_Manager.exe
+D:\Github\Task_Manager\Task_Manager\Debug\Task_Manager.pdb
