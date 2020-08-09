@@ -17,15 +17,14 @@
 using namespace std;
 
 //版本号信息
-int vx = 1, vy = 2;
-string V(unsigned int dt = 0)
-{
-    string ans = "V";
-    stringstream ss;
-    ss << vx << "." << vy + dt;
-    ans += ss.str();
-    return ans;
-}
+#define V 2.0
+
+//choose传输类型
+//用此类型将n个选项传参
+struct Strs {
+    string str[5];
+
+};
 
 //窗口设置
 POINT curpos;//鼠标的位置
@@ -134,15 +133,15 @@ void save() {
     }
 }
 
-int choose(int n, string str[4]) {
+int choose(int n, Strs strs) {
 
-    for (int i = 0; i < n && i < 4; i++) {
+    for (int i = 0; i < n && i < 5; i++) {
         gotoxy(50, i*4+1);
         cout << "----------------";
         gotoxy(50, i*4+3);
         cout << "                          ";
         gotoxy(50, i*4+3);
-        cout << i + 1 << "." << str[i];
+        cout << i + 1 << "." << strs.str[i];
     }
     gotoxy(50, 4 * n + 1);
     cout << "----------------";
@@ -174,10 +173,179 @@ int choose(int n, string str[4]) {
     }
 }
 
+//时间类型转换
+//时间戳转换成标准时间 
+typedef struct times
+{
+    int Year;
+    int Mon;
+    int Day;
+    int Hour;
+    int Min;
+    int Second;
+} Times;
 
+Times stamp_to_standard(int stampTime, bool output = false)
+{
+    time_t tick = (time_t)stampTime;
+    struct tm tm;
+    char s[100];
+    Times standard;
+    //tick = time(NULL);
+    tm = *localtime(&tick);
+    strftime(s, sizeof(s), "%Y-%m-%d %H:%M:%S", &tm);
+    if (output)
+        printf("%d: %s", (int)tick, s);
+    //	cout<<b.Year<<" "<<b.Mon<<" "<<b.Day<<" "<<b.Hour<<" "<<b.Min<<" "<<b.Second; 
+    standard.Year = atoi(s);
+    standard.Mon = atoi(s + 5);
+    standard.Day = atoi(s + 8);
+    standard.Hour = atoi(s + 11);
+    standard.Min = atoi(s + 14);
+    standard.Second = atoi(s + 17);
+    return standard;
+}
+
+//标准时间准换成时间戳 
+int standard_to_stamp(char* str_time)
+{
+    struct tm stm;
+    int iY, iM, iD, iH, iMin, iS;
+
+    memset(&stm, 0, sizeof(stm));
+    iY = atoi(str_time);
+    iM = atoi(str_time + 5);
+    iD = atoi(str_time + 8);
+    iH = atoi(str_time + 11);
+    iMin = atoi(str_time + 14);
+    iS = atoi(str_time + 17);
+
+    stm.tm_year = iY - 1900;
+    stm.tm_mon = iM - 1;
+    stm.tm_mday = iD;
+    stm.tm_hour = iH;
+    stm.tm_min = iMin;
+    stm.tm_sec = iS;
+    //printf("%d-%0d-%0d %0d:%0d:%0d\n", iY, iM, iD, iH, iMin, iS);*/   //标准时间格式例如：2016:08:02 12:12:30
+    return (int)mktime(&stm);
+}
+
+void new_task()
+{
+    system("cls");
+    task now;
+
+    cout << "请输入新任务的名字：";
+    getline(cin,now.name);
+
+    cout << "请告诉我这项任务准备什么时候开始？\n";
+    switch (choose(2, { "现在开始","我来输入时间" }))
+    {
+    case 1: {
+        now.stime = time(0);
+        break;
+    }
+    case 2: {
+        do {
+            cout << "请输入时间：";
+            char a[21];
+            while ((a[0] = getchar()) == '\n' || a[0] > '9' || a[0] < '0');
+            memset(a, sizeof(a), 0);
+            for (int i = 1;; i++) {
+                a[i] = getchar();
+                if (a[i] == '\n') {
+                    a[i] = 0; break;
+                }
+            }
+            now.stime = standard_to_stamp(a);
+            if (now.stime == -1) cout << "输入有误 请重输\n";
+        } while (now.stime == -1);
+        break;
+    }
+    case 0: {
+        return;
+        break;
+    }
+    }
+
+    cout << "请告诉我这项任务计划在何时完成？\n";
+    switch (choose(2, { "暂时没有计划完成的时间", "输入完成的时间" }))
+    {
+    case 2: {
+        do {
+            cout << "time:";
+            char a[21];
+            memset(a, sizeof(a), 0);
+            while ((a[0] = getchar()) == '\n' || a[0] > '9' || a[0] < '0');
+            for (int i = 1;; i++) {
+                a[i] = getchar();
+                if (a[i] == '\n') {
+                    a[i] = 0; break;
+                }
+            }
+            now.ftime = standard_to_stamp(a);
+            if (now.ftime == -1) cout << "输入有误 请重输\n";
+        } while (now.ftime == -1);
+        break;
+    }
+    case 0: {
+        return;
+        break;
+    }
+    }
+}
+
+void finish()
+{
+
+}
+
+void edit()
+{
+
+}
+
+void more()
+{
+
+}
+
+void help()
+{
+
+
+}
 int main()
 {
-    
+
+
+
+    while (1)
+    {
+        switch (choose(4, { "新建任务","结束任务","修改任务","更多选项","我要帮助" }))
+        {
+        case 1:{
+            new_task();
+            break;
+            }
+        case 2: {
+            finish();
+            break;
+        }
+        case 3: {
+            edit();
+            break;
+        }
+        case 4: {
+            more();
+            break;
+        }
+        case 5: {
+            help();
+            break;
+        }
+        }
+    }
 }
 
 /*
