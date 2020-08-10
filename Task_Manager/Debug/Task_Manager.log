@@ -1,4 +1,5 @@
 ﻿  Task_Manager.cpp
-D:\Github\Task_Manager\Task_Manager\Task_Manager.cpp(330,25): warning C4244: “=”: 从“time_t”转换到“int”，可能丢失数据
-D:\Github\Task_Manager\Task_Manager\Task_Manager.cpp(517,34): warning C4244: “=”: 从“time_t”转换到“int”，可能丢失数据
+D:\Github\Task_Manager\Task_Manager\Task_Manager.cpp(343,23): warning C4018: “<”: 有符号/无符号不匹配
+D:\Github\Task_Manager\Task_Manager\Task_Manager.cpp(350,25): warning C4244: “=”: 从“time_t”转换到“int”，可能丢失数据
+D:\Github\Task_Manager\Task_Manager\Task_Manager.cpp(538,34): warning C4244: “=”: 从“time_t”转换到“int”，可能丢失数据
   Task_Manager.vcxproj -> D:\Github\Task_Manager\Task_Manager\Debug\Task_Manager.exe

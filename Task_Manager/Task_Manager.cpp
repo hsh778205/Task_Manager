@@ -82,19 +82,19 @@ struct task {
 //之所以没有加是因为我觉得没必要，也没人会看我的代码
 
 bool task_str(task a, task b) {
-    return a.name < b.name;
+    return a.name == b.name ? a.stime < b.stime : a.name < b.name;
 }
 
 bool task_st(task a, task b) {
-    return a.stime < b.stime;
+    return a.stime == b.stime ? a.ptime < b.ptime : a.stime < b.stime;
 }
 
 bool task_pt(task a, task b) {
-    return a.ptime < b.ptime;
+    return a.ptime == b.ptime ? a.stime < b.stime : a.ptime < b.ptime;
 }
 
-bool task_ft(task a, task b) {
-    return a.ftime < b.ftime;
+bool task_ft(task a, task b) {//这种排序可以不用
+    return a.ftime == b.ftime?a.ptime<b.ptime:a.ftime<b.ftime;
 }
 
 vector<task>his, del, temp;
@@ -278,20 +278,39 @@ void read() {
     }
     task t; int n; fin >> n;
     for (int i = 0; i < n; i++) {
-        while (t.name == "" || t.name == "\n") getline(fin, t.name);
-        fin >> t.stime >> t.stime >> t.ftime;
+        fin >> t.name;
+        fin >> t.stime >> t.ptime >> t.ftime;
         his.push_back(t);
     }
     fin >> n;
     for (int i = 0; i < n; i++) {
-        getline(fin, t.name);
-        fin >> t.stime >> t.stime >> t.ftime;
+        fin >> t.name;
+        fin >> t.stime >> t.ptime >> t.ftime;
         del.push_back(t);
     }
 }
 
-void show()
-{
+void show(unsigned int n=-1){
+    if (n != -1) {
+        if (n > 999) n -= 1000;
+        if (his[n].ftime) SetColor(0, 8);
+        else SetColor(0, 7);
+        cout << n + 1000 << " " << his[n].name << endl;
+        stamp_to_standard(his[n].stime, true), cout << endl;
+        if (his[n].ptime) {
+            cout << "plan time:";
+            stamp_to_standard(his[n].ptime, true);
+            cout << "\n";
+        }
+        if (his[n].ftime) {
+            cout << "finish time:";
+            stamp_to_standard(his[n].ftime, true);
+            cout << "\n已完成\n";
+        }
+        cout << endl << endl;
+        SetColor(0, 7);
+        return;
+    }
     cout << "total:" << his.size() << endl;
     cout << "bin:" << del.size() << endl;
     for (unsigned int i = 0; i < his.size(); i++) {
@@ -321,6 +340,7 @@ void new_task()
 
     cout << "请输入新任务的名字：";
     getline(cin,now.name);
+    for (int i = 0; i < now.name.size(); i++) if (now.name[i] == ' ') now.name[i] = '-';
 
     system("cls");
     cout << "请告诉我这项任务准备什么时候开始？\n";
@@ -456,17 +476,19 @@ void finish()
     system("cls");
     show();
     //这里必须要cls+show，因为下面有提示语。。。
-    cout << "输入已完成的事项编号\n";
+    cout << "输入您完成的任务编号\n";
     unsigned int num; num = readud();
     if (num > (unsigned int)-3) return;
     if (num >= 1000) num -= 1000;
     if (num < 0 || num >= his.size()) {
         cout << "error 104\n"; system("pause"); return;
     }
+    system("cls");
+    show(num);
     if (his[num].ftime)
     {
         cout << "该事项已经完成了。你还可以\n";
-        switch (choose(4, { "取消完成", "修改完成时间", "删除该事项", "永久删除该事项(真的很久)" }))
+        switch (choose(4, { "取消完成任务", "修改完成时间", "删除该任务", "永久删除该事项(真的很久)" }))
         {
         case 0: {
             return;
@@ -506,7 +528,6 @@ void finish()
     }
     else
     {
-        system("cls");
         cout << "什么时候完成的？\n";
         switch (choose(2, { "刚刚完成", "之前完成" })) {
         case 0: {
@@ -541,6 +562,16 @@ void finish()
 
 void edit()
 {
+    system("cls");
+    show();
+    //这里必须要cls+show，因为下面有提示语。。。
+    cout << "输入已完成的事项编号\n";
+    unsigned int num; num = readud();
+    if (num > (unsigned int)-3) return;
+    if (num >= 1000) num -= 1000;
+    if (num < 0 || num >= his.size()) {
+        cout << "数字不正确\n"; system("pause"); return;
+    }
 
 }
 
@@ -561,7 +592,7 @@ void help()
         ;
     cout << "数据保存在C:\\task\\task.lib,可使用txt文本查看器打开\n";
     cout << "b 返回\ns 保存\nx 保存并退出\n\n";
-    cout << "更新日志&官网:https://github.com/hsh778205/Task_Manager\n";
+    cout << "更新日志&官网:https://github.com/hsh778205/Task_Manager \n";
     system("pause");
     system("cls");
 
@@ -569,7 +600,7 @@ void help()
 int main()
 {
     read();
-    while (1)
+    while (true)
     {
         system("cls");
         show();
