@@ -36,6 +36,23 @@ HANDLE ConsoleWin = GetStdHandle(STD_INPUT_HANDLE);
 INPUT_RECORD eventMsg;
 DWORD Pointer;
 
+//color
+void SetColor(unsigned short BackGroundColor, unsigned short ForeColor)
+{
+    HANDLE hCon = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hCon, (ForeColor % 16) | (BackGroundColor % 16 * 16));
+}
+/*
+    0 = 黑色       8 = 灰色
+    1 = 蓝色       9 = 淡蓝色
+    2 = 绿色       A = 淡绿色
+    3 = 浅绿色     B = 淡浅绿色
+    4 = 红色       C = 淡红色
+    5 = 紫色       D = 淡紫色
+    6 = 黄色       E = 淡黄色
+    7 = 白色       F = 亮白色
+*/
+
 //任务结构
 struct task {
     string name;
@@ -53,10 +70,16 @@ struct task {
     bool operator!=(task x) {
         return !(*this == x);
     }
+    void clear() {
+        name.clear();
+        stime = ptime = ftime = 0;
+    }
+    bool empty() {
+        return name.empty() && !stime && !ptime && !ftime;
+    }
 };
 //下面的比较函数只有第一排序条件，没有第二，第三，第四条件
 //之所以没有加是因为我觉得没必要，也没人会看我的代码
-const task empty;
 
 bool task_str(task a, task b) {
     return a.name < b.name;
@@ -122,7 +145,7 @@ void getxy() {
 }
 
 void save() {
-    ofstream fout("E:\\task\\task.lib", ios::out);
+    ofstream fout("C:\\task\\task.lib", ios::out);
     fout << his.size() << endl;
     for (unsigned int i = 0; i < his.size(); i++) {
         fout << his[i].name << endl << his[i].stime << " " << his[i].ptime << " " << his[i].ftime << endl << endl;
@@ -134,22 +157,25 @@ void save() {
 }
 
 int choose(int n, Strs strs) {
-
+    getxy();
+    for (int i = 0; i < 27; i++) {
+        gotoxy(72, i + 1); cout << "                    ";
+    }
     for (int i = 0; i < n && i < 5; i++) {
-        gotoxy(50, i*4+1);
-        cout << "----------------";
-        gotoxy(50, i*4+3);
+        gotoxy(72, i*4+1);
+        cout << "-------------------";
+        gotoxy(72, i*4+3);
         cout << "                          ";
-        gotoxy(50, i*4+3);
+        gotoxy(72, i*4+3);
         cout << i + 1 << "." << strs.str[i];
     }
-    gotoxy(50, 4 * n + 1);
-    cout << "----------------";
-    gotoxy(50, 4*n+2); cout << "返回请按b键";
-    gotoxy(50, 4*n+3); cout << "按下s键以保存数据";
-    gotoxy(50, 4*n+4); cout << "按下x键以保存并退出";
-    gotoxy(50, 4*n+5); cout << "用数字1,2,3,4选择";
-    gotoxy(50, 4*n+6); cout << "请输入你的回复";
+    gotoxy(72, 4 * n + 1);
+    cout << "-------------------";
+    gotoxy(72, 4*n+2); cout << "返回请按b键";
+    gotoxy(72, 4*n+3); cout << "按下s键以保存数据";
+    gotoxy(72, 4*n+4); cout << "按下x键以保存并退出";
+    gotoxy(72, 4*n+5); cout << "用数字1,2,3,4选择";
+    gotoxy(72, 4*n+6); cout << "请输入你的回复";
     char ans;
     while (true) {
         ans = getch();
@@ -171,6 +197,7 @@ int choose(int n, Strs strs) {
             return 0;
         }
     }
+    backxy();
 }
 
 //时间类型转换
@@ -230,6 +257,63 @@ int standard_to_stamp(char* str_time)
     return (int)mktime(&stm);
 }
 
+unsigned int readud() {
+    string t; cin >> t;
+    if (t == "b" || t == "back") return -1;
+    for (unsigned int i = 0; i < t.size(); i++) if (t[i] < '0' || t[i]>'9') return -2;
+    unsigned int ans = 0;
+    for (unsigned int i = 0; i < t.size(); i++) ans = ans * 10 + t[i] - '0';
+    if (ans > 999) ans -= 1000;
+    if (ans > 1000) return -1;
+    return ans;
+}
+
+
+void read() {
+    ifstream fin("C:\\task\\task.lib", ios::in);
+    if (fin.eof()) {
+        cout << "如果您是初次使用，请先进入 帮助->关于 查看关于此软件的相关操作\n";
+        system("pause");
+        return;
+    }
+    task t; int n; fin >> n;
+    for (int i = 0; i < n; i++) {
+        while (t.name == "" || t.name == "\n") getline(fin, t.name);
+        fin >> t.stime >> t.stime >> t.ftime;
+        his.push_back(t);
+    }
+    fin >> n;
+    for (int i = 0; i < n; i++) {
+        getline(fin, t.name);
+        fin >> t.stime >> t.stime >> t.ftime;
+        del.push_back(t);
+    }
+}
+
+void show()
+{
+    cout << "total:" << his.size() << endl;
+    cout << "bin:" << del.size() << endl;
+    for (unsigned int i = 0; i < his.size(); i++) {
+        if (his[i].ftime) SetColor(0, 8);
+        else SetColor(0, 7);
+        cout << i + 1000 << " " << his[i].name << endl;
+        stamp_to_standard(his[i].stime, true), cout << endl;
+        if (his[i].ptime) {
+            cout << "plan time:";
+            stamp_to_standard(his[i].ptime, true);
+            cout << "\n";
+        }
+        if (his[i].ftime) {
+            cout << "finish time:";
+            stamp_to_standard(his[i].ftime, true);
+            cout << "\n已完成\n";
+        }
+        cout << endl << endl;
+    }
+    SetColor(0, 7);
+}
+
 void new_task()
 {
     system("cls");
@@ -238,6 +322,7 @@ void new_task()
     cout << "请输入新任务的名字：";
     getline(cin,now.name);
 
+    system("cls");
     cout << "请告诉我这项任务准备什么时候开始？\n";
     switch (choose(2, { "现在开始","我来输入时间" }))
     {
@@ -268,12 +353,13 @@ void new_task()
     }
     }
 
+    system("cls");
     cout << "请告诉我这项任务计划在何时完成？\n";
     switch (choose(2, { "暂时没有计划完成的时间", "输入完成的时间" }))
     {
     case 2: {
         do {
-            cout << "time:";
+            cout << "请输入时间：";
             char a[21];
             memset(a, sizeof(a), 0);
             while ((a[0] = getchar()) == '\n' || a[0] > '9' || a[0] < '0');
@@ -283,9 +369,9 @@ void new_task()
                     a[i] = 0; break;
                 }
             }
-            now.ftime = standard_to_stamp(a);
-            if (now.ftime == -1) cout << "输入有误 请重输\n";
-        } while (now.ftime == -1);
+            now.ptime = standard_to_stamp(a);
+            if (now.ptime == -1) cout << "输入有误 请重输\n";
+        } while (now.ptime == -1);
         break;
     }
     case 0: {
@@ -293,11 +379,164 @@ void new_task()
         break;
     }
     }
+    cout << "您是否要保存这项任务？";
+    switch (choose(3, { "保存", "当然要保存！", "不保存" })) {
+    case 3:
+    case 0: {
+        return;
+        break;
+    }
+    case 1:
+    case 2: {
+        his.push_back(now);
+        save();
+        break;
+    }
+    }
+    save();
+}
+
+void remove_one(unsigned int num, int mode)
+{
+    if (num > 999) num -= 1000;
+    /*
+    his->del
+    del->x
+    his->x
+    del->his
+    */
+    if (mode % 2 && num >= his.size()) {
+        cout << "error 102" << endl; system("pause"); return;
+    }
+    if (mode % 2 == 0 && num >= del.size()) {
+        cout << "error 102" << endl; system("pause"); return;
+    }
+    /*
+    if(mode==1||mode==3) for(int i=his.size()-1;i>num;i--) temp.push_back(his.back()),his.pop_back();
+    else for(int i=del.size()-1;i>num;i--) temp.push_back(del.back()),del.pop_back();
+
+    if(mode==1) del.push_back(his.back()),his.pop_back();
+    if(mode==2) del.pop_back();
+    if(mode==3) his.pop_back();
+    if(mode==4) his.push_back(del.back()),del.pop_back();
+
+    if(mode==1||mode==3) for(int i=0;i<temp.size();i++) his.push_back(temp.back()),temp.pop_back();
+    else for(int i=0;i<temp.size();i++) del.push_back(temp.back()),temp.pop_back();
+    */
+    if (mode == 1) {//his->del
+        del.push_back(his[num]);
+        his[num].clear();
+        temp = his;
+        his.clear();
+        for (unsigned int i = 0; i < temp.size(); i++) if (!temp[i].empty()) his.push_back(temp[i]);
+    }
+    if (mode == 2) {//del->x
+        del[num].clear();
+        temp = del;
+        del.clear();
+        for (unsigned int i = 0; i < temp.size(); i++) if (!temp[i].empty()) del.push_back(temp[i]);
+    }
+    if (mode == 3) {//his->x
+        his[num].clear();
+        temp = his;
+        his.clear();
+        for (unsigned int i = 0; i < temp.size(); i++) if (!temp[i].empty()) his.push_back(temp[i]);
+    }
+    if (mode == 4) {//del->his
+        his.push_back(del[num]);
+        del[num].clear();
+        temp = del;
+        del.clear();
+        for (unsigned int i = 0; i < temp.size(); i++) if (!temp[i].empty()) his.push_back(temp[i]);
+    }
 }
 
 void finish()
 {
+    system("cls");
+    show();
+    //这里必须要cls+show，因为下面有提示语。。。
+    cout << "输入已完成的事项编号\n";
+    unsigned int num; num = readud();
+    if (num > (unsigned int)-3) return;
+    if (num >= 1000) num -= 1000;
+    if (num < 0 || num >= his.size()) {
+        cout << "error 104\n"; system("pause"); return;
+    }
+    if (his[num].ftime)
+    {
+        cout << "该事项已经完成了。你还可以\n";
+        switch (choose(4, { "取消完成", "修改完成时间", "删除该事项", "永久删除该事项(真的很久)" }))
+        {
+        case 0: {
+            return;
+            break;
+        }
+        case 1: {
+            his[num].ftime = 0;
+            break;
+        }
+        case 2: {
+            do {
+                cout << "input time:";
+                char a[21];
+                memset(a, sizeof(a), 0);
+                while ((a[0] = getchar()) == '\n' || a[0] > '9' || a[0] < '0');
+                for (int i = 1; i < 21; i++) {
+                    a[i] = getchar();
+                    if (a[i] == '\n') {
+                        a[i] = 0; break;
+                    }
+                }
+                his[num].ftime = standard_to_stamp(a);
+                if (his[num].ftime == -1) cout << "输入有误 请重输\n";
+            } while (his[num].ftime == -1);
+            break;
+        }
+        case 3: {
+            remove_one(num, 1);
+            break;
+        }
+        case 4: {
+            remove_one(num, 3);
+            break;
+        }
+        }
 
+    }
+    else
+    {
+        system("cls");
+        cout << "什么时候完成的？\n";
+        switch (choose(2, { "刚刚完成", "之前完成" })) {
+        case 0: {
+            return;
+            break;
+        }
+        case 1: {
+            his[num].ftime = time(0);
+            break;
+        }
+        case 2: {
+            do {
+                cout << "input time:";
+                char a[21];
+                memset(a, sizeof(a), 0);
+                while ((a[0] = getchar()) == '\n' || a[0] > '9' || a[0] < '0');
+                for (int i = 1; i < 21; i++) {
+                    a[i] = getchar();
+                    if (a[i] == '\n') {
+                        a[i] = 0; break;
+                    }
+                }
+                his[num].ftime = standard_to_stamp(a);
+                if (his[num].ftime == -1) cout << "输入有误 请重输\n";
+            } while (his[num].ftime == -1);
+            break;
+        }
+        }
+    }
+    save();
 }
 
 void edit()
@@ -312,17 +551,29 @@ void more()
 
 void help()
 {
-
+    system("cls");
+    cout << "当前版本:" << V << endl;
+    cout << "妈妈给了本关于拖延症的书，叫《别让拖延症毁了你》，我看到标题就觉得这本书适合我（因为我觉得自己太拖延了！）\n"
+        << "里面有许多关于拖延症的原因，道理，逻辑方面的知识，也有许多小故事，每个故事都对应这一种类型的拖延症表现（当然也有正面的）\n"
+        << "其中就有个措施是“合理的制定计划”，我想，在这神奇的编程下，制定计划应该会很容易吧，就设想了几个比较不错的功能\n"
+        << "但是我到网上一搜，得到的代码都无法满足我的要求（虽然我的标准也不是恒定不变的，但我觉得我可以写出让我满意的代码）\n"
+        << "于是我就开始动手了\n\n"
+        ;
+    cout << "数据保存在C:\\task\\task.lib,可使用txt文本查看器打开\n";
+    cout << "b 返回\ns 保存\nx 保存并退出\n\n";
+    cout << "更新日志&官网:https://github.com/hsh778205/Task_Manager\n";
+    system("pause");
+    system("cls");
 
 }
 int main()
 {
-
-
-
+    read();
     while (1)
     {
-        switch (choose(4, { "新建任务","结束任务","修改任务","更多选项","我要帮助" }))
+        system("cls");
+        show();
+        switch (choose(5, { "新建任务","结束任务","修改任务","更多选项","我要帮助" }))
         {
         case 1:{
             new_task();
@@ -350,6 +601,7 @@ int main()
 
 /*
 新建
+完成
 修改
 更多
     回收站
